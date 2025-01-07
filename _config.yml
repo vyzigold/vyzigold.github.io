@@ -60,6 +60,7 @@ collections:
     output: true
     feature_text: |
       Jaromir Wysoglad's blog
+    feature_image: "https://vyzigold.github.io/placeholder.jpg"
 
 # Collection settings
 defaults:
