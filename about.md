@@ -8,7 +8,7 @@ In this blog, I want to write about some interesting topics and ideas I encounte
 
 If you're interested to know more about me. I'm Czech, I'm a volunteer firefighter, I like Star Trek, beer and [firesport](https://www.youtube.com/watch?v=5tUCGp_jbVw)
 
-# Some if my links:
+## Some of my links:
 
 Github {% include icon.html id="github" title="github" %}: [https://github.com/vyzigold](https://github.com/vyzigold)
 
