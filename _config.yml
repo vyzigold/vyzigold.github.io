@@ -27,6 +27,13 @@ title: 'Vyzigold blog'
 description: 'My block about software development. Mainly OpenStack'
 permalink: pretty
 logo: "https://vyzigold.github.io/computer.jpg"
+author: Jaromir Wysoglad
+email: jaromirwysoglad@gmail.com
+social:
+  name: Jaromir Wysoglad
+  links:
+    - https://github.com/vyzigold
+    - https://www.linkedin.com/in/jaromír-wysoglad-667b4b1a3/
 
 # Pagination
 paginate: 5
