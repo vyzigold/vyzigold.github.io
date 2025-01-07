@@ -8,6 +8,8 @@ In this blog, I want to write about some interesting topics and ideas I encounte
 
 If you're interested to know more about me. I'm Czech, I'm a volunteer firefighter, I like Star Trek, beer and [firesport](https://www.youtube.com/watch?v=5tUCGp_jbVw)
 
-Some if my links:
-Github: https://github.com/vyzigold
-Linkedin: https://www.linkedin.com/in/jaromír-wysoglad-667b4b1a3/
+# Some if my links:
+
+Github {% include icon.html icon="github" %}: https://github.com/vyzigold
+
+Linkedin {% include icon.html icon="linkedin" %}: https://www.linkedin.com/in/jaromír-wysoglad-667b4b1a3/
