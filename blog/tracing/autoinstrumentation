@@ -1,0 +1,129 @@
+The autoinstrumentation uses monkey patching of some of the Python libraries used by the openstack services like requests or sqlite. To use the autoinstrumentation you need to install the required instrumentation libraries and then run the `opentelemetry-instrument` script to which you'll give the service you want to instrument as an argument. You can also use the opentelemetry operator when running the openstack on top of kubernetes (for example RHOSO, but that needs some additional modifications)
+
+Example of autoinstrumenting on devstack
+
+```
+// install required packages (we don't need to install all the exporters, only those we want to use)
+pip install opentelemetry-distro opentelemetry-exporter-otlp opentelemetry-exporter-jaeger opentelemetry-exporter-prometheus
+opentelemetry-bootstrap -a install
+
+// Edit the command run by systemd when runnig aodh-evaluator
+sudo vim /etc/systemd/system/devstack\@aodh-evaluator.service
+
+// Do the following replacement (configure only the exporters you really plan to use):
+- ExecStart = /usr/local/bin/aodh-evaluator --config-file /etc/aodh/aodh.conf
++ ExecStart = /opt/stack/.local/bin/opentelemetry-instrument --traces_exporter console,otlp --metrics_exporter console,otlp,prometheus --service_name aodh-evaluator --exporter_otlp_endpoint 0.0.0.0:4317 --exporter_prometheus_host 0.0.0.0 --exporter_prometheus_port 3030 /usr/local/bin/aodh-evaluator --config-file /etc/aodh/aodh.conf
+
+// Restart aodh-evaluator
+sudo systemctl daemon-reload
+sudo systemctl restart devstack@aodh-evaluator.service
+```
+
+With that you'll be able to see traces in the journal. You can then deploy and configure any kind of storage or transport solution you want (like Jaeger or OTEL collector). You can instrument other openstack services very similarly.
+
+Example traces
+
+```
+// Querying Prometheus
+ {
+     "name": "GET",
+     "context": {
+         "trace_id": "0xb4021bc7d5ad9dbc96aa21f1943f2613",
+         "span_id": "0x5edd7d131e47b2c3",
+         "trace_state": "[]"
+     },
+     "kind": "SpanKind.CLIENT",
+     "parent_id": null,
+     "start_time": "2024-06-20T09:10:48.682452Z",
+     "end_time": "2024-06-20T09:10:48.684403Z",
+     "status": {
+         "status_code": "UNSET"
+     },
+     "attributes": {
+         "http.method": "GET",
+         "http.url": "http://localhost:9090/api/v1/query?query=%28rate%28ceilometer_cpu>
+         "http.status_code": 200
+     },
+     "events": [],
+     "links": [],
+     "resource": {
+         "attributes": {
+             "telemetry.sdk.language": "python",
+             "telemetry.sdk.name": "opentelemetry",
+             "telemetry.sdk.version": "1.25.0",
+             "service.name": "aodh-evaluator",
+             "telemetry.auto.version": "0.46b0"
+         },
+         "schema_url": ""
+     }
+ } 
+
+ // DB query
+ {
+     "name": "UPDATE aodh",
+     "context": {
+         "trace_id": "0xc83a87660dd7a8feb40509d9e0b92813",
+         "span_id": "0xb5dfbebebbfb51dd",
+         "trace_state": "[]"
+     },
+     "kind": "SpanKind.CLIENT",
+     "parent_id": null,
+     "start_time": "2024-06-20T08:50:48.659666Z",
+     "end_time": "2024-06-20T08:50:48.660470Z",
+     "status": {
+         "status_code": "UNSET"
+     },
+     "attributes": {
+         "db.statement": "UPDATE alarm SET evaluate_timestamp=%(evaluate_timestamp)s WH>
+         "db.system": "mysql",
+         "net.peer.name": "127.0.0.1",
+         "db.name": "aodh",
+         "db.user": "root"
+     },
+     "events": [],
+     "links": [],
+     "resource": {
+         "attributes": {
+             "telemetry.sdk.language": "python",
+             "telemetry.sdk.name": "opentelemetry",
+             "telemetry.sdk.version": "1.25.0",
+             "service.name": "aodh-evaluator",
+             "telemetry.auto.version": "0.46b0"
+         },
+         "schema_url": ""
+     }
+ }
+```
+
+Example of using the opentelemetry operator
+- First you need to deploy the opentelemetry operator https://github.com/open-telemetry/opentelemetry-operator either by applying the opentelemetry-operator.yaml or by using the helm chart.
+- Then you need to create an Instrumentation CR, where you configure where the collected traces should go. For example I used this one:
+```
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: my-instrumentation
+spec:
+  propagators:
+    - baggage
+  python:
+    env:
+      # Required if endpoint is set to 4317.
+      # Python autoinstrumentation uses http/proto by default
+      # so data must be sent to 4318 instead of 4317.
+      - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+        value: http://tempo-simplest-distributor:4318/v1/traces
+      - name: OTEL_EXPORTER_OTLP_TRACES_INSECURE
+        value: "true"
+      - name: OTEL_METRICS_EXPORTER
+        value: "none"
+      - name: OTEL_LOGS_EXPORTER
+        value: "none"
+```
+- Now add the following annotations to pod template annotations of a statefulset or deployment of each service you want to autoinstrument:
+```
+        instrumentation.opentelemetry.io/enable-multi-instrumentation: "true"
+        instrumentation.opentelemetry.io/inject-python: "true"
+        instrumentation.opentelemetry.io/python-container-names: aodh-evaluator,aodh-notifier,aodh-listener
+```
+The configured pods should restart and you should start receiving traces in the place configured in the Instrumentation CR. It's teoretically also possible to use the apache-httpd instrumentation to get a different set of traces, but right now this would require the operators of the instrumented services to be disabled, which would probably eventually lead to a non-working stack, so it isn't really worth it right now. You also at the moment can't use multiple instrumentations at once with the opentelemetry-operator (as of the day I'm writing this) and python instrumentation seeems to provide more data.

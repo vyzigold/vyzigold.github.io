@@ -1,0 +1,32 @@
+The OSProfiler is an openstack project, which can use OTEL autoinstrumentation as well as custom manually added code througout a lot of the openstack services to generate traces and send them for remote storage. In comparison to plain OTEL autoinstrumentation, OSProfiler traces only requests with the correct HTTP X-Trace-HMAC=<hmac_key> header. On cli this means you'll need to add `--os-profile <hmac_key>` to the commands you want to trace. This can be used to limit the performance hit when enabling tracing.
+
+Unfortunatelly I encountered some issues with some of the services (these might have been fixed since I wrote this blog post).
+- When running all instrumentations, after, Nova stopped being able to create instances, they always stayed in the "BUILD" state. I think this might have been caused by the added OTEL autoinstrumentation (so by using the `trace_sqlalchemy` and `trace_requests`), but this would need further testing. I ended up disabling OSProfiler in Nova in my tests because of this.
+- No matter what I did. I wasn't able to get any traces from Neutron. The Neutron code seems to be instrumented and it seems to allow using OSProfiler, but I wasn't able to get that code to do anything.
+- When exporting traces to Jaeger through the thrift protocol (note that the library used by OSProfiler to do this is getting deprecated soon), I wasn't able to get any Nova traces in Jaeger. Nova traces would only appear in the journal, but they weren't being sent to the Jaeger. While Keystone traces were sent without a problem.
+
+Example of configuring OSProfiler
+
+Modify a service config file, which you want to get traces from
+
+```
+[profiler_otlp]
+service_name_prefix = my_keystone
+
+[profiler]
+enabled = True
+trace_sqlalchemy = True
+trace_requests = True
+connection_string = otlp://127.0.0.1:4318
+```
+You can use multiple ways to export the traces. The above uses OTLP. You can use thrift to send traces to Jaeger with the following:
+```
+[profiler_jaeger]
+service_name_prefix = my_keystone
+
+[profiler]
+enabled = True
+trace_sqlalchemy = True
+trace_requests = True
+connection_string = jaeger://localhost:6831
+```
