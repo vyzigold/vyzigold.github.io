@@ -10,6 +10,6 @@ If you're interested to know more about me. I'm Czech, I'm a volunteer firefight
 
 # Some if my links:
 
-Github {% include icon.html icon="github" %}: https://github.com/vyzigold
+Github {% include icon.html id="github" title="github" %}: [https://github.com/vyzigold](https://github.com/vyzigold)
 
-Linkedin {% include icon.html icon="linkedin" %}: https://www.linkedin.com/in/jaromír-wysoglad-667b4b1a3/
+Linkedin {% include icon.html id="linkedin" title="linkedin" %}: [https://www.linkedin.com/in/jaromír-wysoglad-667b4b1a3/](https://www.linkedin.com/in/jaromír-wysoglad-667b4b1a3/)
