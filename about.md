@@ -1,5 +1,9 @@
 ---
 title: About me and the blog
+feature_text: |
+  ## Jaromir Wysoglad's blog
+feature_image: "https://vyzigold.github.io/placeholder.jpg"
+
 ---
 
 I'm a software engineer at Red Hat. I work on [OpenStack](https://www.openstack.org/) telemetry. As part of that I'm contributing to the OpenStack telemetry projects like Ceilometer and Aodh. I'm also active in the [openstack-k8s-operators](https://github.com/openstack-k8s-operators), which aims to develop a set of operators to deploy OpenStack on top of Kubernetes, I contribute mainly to the telemetry-operator.

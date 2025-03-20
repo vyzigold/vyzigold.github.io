@@ -6,3 +6,5 @@ feature_image: "https://vyzigold.github.io/placeholder.jpg"
 ---
 
 A blog about my work on openstack telemetry.
+
+Latest post: [Metric multi-tenancy with Prometheus part 1](https://vyzigold.github.io/openstack/2025/03/20/tenancy_1/)
