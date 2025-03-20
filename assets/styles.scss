@@ -1,0 +1,19 @@
+---
+title: false
+styles: true
+---
+
+@import "alembic";
+
+
+.content {
+  @include breakpoint(break-1) {
+    width: 90%;
+  }
+}
+
+.feature {
+  .container {
+    min-height: 20vh;
+  }
+}
