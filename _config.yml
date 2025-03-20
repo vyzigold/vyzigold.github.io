@@ -43,10 +43,12 @@ paginate_path: blog/page:num
 navigation_header:
 - title: Home
   url: /
-- title: About
-  url: /about/
 - title: Blog
   url: /blog/
+- title: Categories
+  url: /categories/
+- title: About
+  url: /about/
 
 # Footer nav
 navigation_footer:
